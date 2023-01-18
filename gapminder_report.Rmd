@@ -30,6 +30,7 @@ ggplot(data = gapminder_1997) +
   labs(x = "GDP Per Capita", y = "Life Expectancy",
        title= "Do people in wealthy countries live longer?", size="Population (in millions)")
 ```
+
 ```{r Country-stats}
 # Number of countries in dataset
 nCountries<-

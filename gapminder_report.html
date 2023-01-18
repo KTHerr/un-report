@@ -396,7 +396,8 @@ maxGDP &lt;- gapminder_1997 %&gt;%
   pull()</code></pre>
 <p>The number of countries in the dataset is 142. The minimum GDP is 312
 and the maximum GDP is 4.1283^{4}</p>
-<pre class="r"><code>gapminder_1997%&gt;%
+<pre class="r"><code>#Use knitr to include a table in the markdown
+gapminder_1997%&gt;%
   filter(continent==&quot;Oceania&quot;) %&gt;%
   kable()</code></pre>
 <table>
