@@ -1,0 +1,33 @@
+---
+title: "UN Report Part of Workshop"
+author: "KT"
+date: "2023-01-18"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r load packages}
+library(tidyverse)
+library(ggplot2)
+library(readr)
+```
+
+```{r data}
+gapminder_1997 <- read_csv("un-report/gapminder_1997.csv")
+
+```
+
+```{r gdp_lifeexp_1997}
+ggplot(data = gapminder_1997) + 
+  aes(x = gdpPercap, y = lifeExp, color=continent, size=pop/1000000) +
+  geom_point() +
+  labs(x = "GDP Per Capita", y = "Life Expectancy",
+       title= "Do people in wealthy countries live longer?", size="Population (in millions)")
+```
+```{r}
+
+```
+
