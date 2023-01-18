@@ -3,16 +3,19 @@ title: "UN Report Part of Workshop"
 author: "KT"
 date: "2023-01-18"
 output: html_document
+editor_options: 
+  chunk_output_type: console
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-```{r load packages}
+```{r load packages, echo = FALSE}
 library(tidyverse)
 library(ggplot2)
 library(readr)
+library(knitr)
 ```
 
 ```{r data}
@@ -27,7 +30,30 @@ ggplot(data = gapminder_1997) +
   labs(x = "GDP Per Capita", y = "Life Expectancy",
        title= "Do people in wealthy countries live longer?", size="Population (in millions)")
 ```
-```{r}
+```{r Country-stats}
+# Number of countries in dataset
+nCountries<-
+  gapminder_1997 %>%
+  select(country) %>%
+  n_distinct()
 
+#minimum GPD
+minGDP <- gapminder_1997 %>%
+  summarise(round(min(gdpPercap))) %>%
+  pull()
+
+maxGDP <- gapminder_1997 %>%
+  summarise(round(max(gdpPercap))) %>%
+  pull()
+```
+
+The number of countries in the dataset is `r nCountries`. 
+The minimum GDP is `r minGDP` and the maximum GDP is `r maxGDP`
+
+```{r table}
+#Use knitr to include a table in the markdown
+gapminder_1997%>%
+  filter(continent=="Oceania") %>%
+  kable()
 ```
 
