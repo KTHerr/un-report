@@ -164,3 +164,111 @@ gapminder_data %>%
 #Working with messy data
 
 read_csv("un-report/co2-un-data.csv")
+read_csv("un-report/co2-un-data.csv", skip = 1) # read but skip the first column (1)
+  # But our column names are messed up! ("..2"). Lets skip two columns and assign names to the rest.
+read_csv("un-report/co2-un-data.csv", skip = 2,
+         col_names = c("region","country", "year","series","value","footnotes","source"))
+co2_emissions_dirty <- read_csv("un-report/co2-un-data.csv", skip=2,
+                                col_names=c("region", "country", "year", "series", "value", "footnotes", "source"))
+co2_emissions_dirty
+#Lets replace the number values in the emissions column with descriptions based on those emissions using recode 
+?recode
+co2_emissions_dirty %>%
+  select(country, year, series, value) %>%
+  mutate(series = recode(series, "Emissions (thousand metric tons of carbon dioxide)" = "total_emission",
+                         "Emissions per capita (metric tons of carbon dioxide)" = "per_capita_emission"))
+?pivot_wider
+co2_emissions_dirty %>%
+  select(country, year, series, value) %>%
+  mutate(series = recode(series, "Emissions (thousand metric tons of carbon dioxide)" = "total_emission",
+                         "Emissions per capita (metric tons of carbon dioxide)" = "per_capita_emission")) %>%
+  pivot_wider(names_from=series, values_from=value)
+
+# First filter for just 2005, then get rid of year column
+co2_emissions_dirty %>%
+  select(country, year, series, value) %>%
+  mutate(series = recode(series, "Emissions (thousand metric tons of carbon dioxide)" = "total_emission",
+                         "Emissions per capita (metric tons of carbon dioxide)" = "per_capita_emission")) %>%
+  pivot_wider(names_from=series, values_from=value) %>%
+  filter(year==2005) %>%
+  select(-year)
+
+  # assign to a variable
+co2_emissions <- co2_emissions_dirty %>%
+  select(country, year, series, value) %>%
+  mutate(series = recode(series, "Emissions (thousand metric tons of carbon dioxide)" = "total_emission",
+                         "Emissions per capita (metric tons of carbon dioxide)" = "per_capita_emission")) %>%
+  pivot_wider(names_from=series, values_from=value) %>%
+  filter(year==2005) %>%
+  select(-year)
+
+#Join Data Frames: Bringing in 2007 Population Data
+#(want to combine co2 emissions data with population data per country for each year)
+read_csv("un-report/gapminder_data.csv") %>%
+  filter(year == 2007) %>%
+  select(country, pop, lifeExp, gdpPercap)
+
+  # assign as an object "gapminder_data_2007"
+gapminder_data_2007<- read_csv("un-report/gapminder_data.csv") %>%
+  filter(year == 2007) %>%
+  select(country, pop, lifeExp, gdpPercap)
+
+ # alternative way to achieve the same thing (by subtracting year and continent column)
+gapminder_data_2007 <- read_csv("un-report/gapminder_data.csv") %>%
+  filter(year == 2007 & continent == "Americas") %>%
+  select(-year, -continent)
+
+#Join two tables with a similar column, but rest of columns differ.
+?inner_join
+inner_join(co2_emissions, gapminder_data_2007)
+inner_join(co2_emissions, gapminder_data_2007, by = "country") #only kept rows with data for each one
+ 
+   # which countries do we not have data from? Use anti_join
+?anti_join
+anti_join(co2_emissions, gapminder_data_2007, by = "country")# What data is not shared between these files?
+
+  # full_join (includes NAs, where as inner would not include NAs)
+?full_join
+full_join(co2_emissions, gapminder_data_2007)
+
+
+###After Lunch break
+##Goal: Find the relationship between CO2 and GDP
+joined_co2_pop <- inner_join(co2_emissions, gapminder_data_2007)
+
+#writing to CSV
+write_csv(joined_co2_pop, file = "/cloud/project/un-report/joined_co2_pop.csv")
+  # Read that csv file
+joined_co2_pop<-read_csv("joined_co2_pop.csv")
+
+
+#plot it!
+  # Create a histogram for both gpdPercap and lifeExp (separately), to explore those variables distributions
+ggplot(data = joined_co2_pop)+
+  aes(x = gdpPercap)+
+  geom_histogram()
+
+ggplot(joined_co2_pop)+
+  aes(x=lifeExp)+
+  geom_histogram()
+
+# make a scatterplot
+ggplot(joined_co2_pop, aes(x=gdpPercap, y=per_capita_emission)) +
+  geom_point() +
+  labs(x="GDP (per capita)",
+       y="CO2 emitted (per capita)",
+       title="There is a strong association between a nation's GDP \nand the amount of CO2 it produces"
+  )
+install.packages("ggpubr")
+plot<- ggplot(joined_co2_pop, aes(x=gdpPercap, y=per_capita_emission)) +
+  geom_point() +
+  labs(x="GDP (per capita)",
+       y="CO2 emitted (per capita)",
+       title="There is a strong association between a nation's GDP \nand the amount of CO2 it produces") + 
+    theme_classic()+
+    ggpubr::stat_regline_equation(aes(label= ..rr.label..))#deprecated error means it is no longer being updated in that package
+ 
+ # save that plot
+ggsave(plot, filename = "./awesomeplot.png",
+       height = 4, width =6, units = "in",
+       dpi = 300) #dpi = dotsPerInch (resolution)
